@@ -4,6 +4,7 @@ Orchestrator (Nexus): routes jobs through pipeline phases, enforces order, appli
 import os
 import json
 import redis
+import psycopg2
 from dotenv import load_dotenv
 from rules import RuleEngine, Manifest
 
@@ -18,6 +19,31 @@ if redis_url is None:
     )
 r = redis.Redis.from_url(redis_url, decode_responses=True)
 
+# Postgres connection for error logging
+db_url = os.getenv("DATABASE_URL")
+conn = None
+if db_url:
+    try:
+        conn = psycopg2.connect(db_url)
+        conn.autocommit = True
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                CREATE TABLE IF NOT EXISTS orchestrator_errors (
+                    id SERIAL PRIMARY KEY,
+                    job_id TEXT,
+                    phase TEXT,
+                    error TEXT,
+                    created_at TIMESTAMP DEFAULT NOW()
+                )
+                """
+            )
+    except Exception as e:
+        print(f"Failed to initialize Postgres logging: {e}")
+        conn = None
+else:
+    print("DATABASE_URL is not set; errors will not be logged to Postgres")
+
 # Phase streams in order
 PHASES = ["manifest", "verify", "scaffold", "fix"]
 # Pub/Sub channel
@@ -25,6 +51,20 @@ CHANNEL_COMPLETE = "phase_complete"
 CHANNEL_ERROR = "phase_error"
 
 state = {}  # job_id -> current phase index
+
+
+def log_error(err: dict) -> None:
+    """Persist error details to Postgres if a connection is available."""
+    if conn is None:
+        return
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO orchestrator_errors (job_id, phase, error) VALUES (%s, %s, %s)",
+                (err["job_id"], err["phase"], err["error"]),
+            )
+    except Exception as e:
+        print(f"Failed to log error to Postgres: {e}")
 
 
 def handle_complete(message):
@@ -47,6 +87,7 @@ def handle_complete(message):
     except Exception as e:
         err = {"job_id": job_id, "phase": phase, "error": str(e)}
         r.publish(CHANNEL_ERROR, json.dumps(err))
+        log_error(err)
         print(f"Validation failed: {e}")
         return
 
