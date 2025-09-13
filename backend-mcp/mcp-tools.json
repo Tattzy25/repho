@@ -1,0 +1,11 @@
+{
+  "tools": [
+    { "name": "install", "endpoint": "/install", "description": "Install dependencies" },
+    { "name": "build", "endpoint": "/build", "description": "Build project" },
+    { "name": "run", "endpoint": "/run", "description": "Run project" },
+    { "name": "start", "endpoint": "/start", "description": "Start MCP server" },
+    { "name": "pause", "endpoint": "/pause", "description": "Pause MCP server" },
+    { "name": "stop", "endpoint": "/stop", "description": "Stop MCP server" },
+    { "name": "status", "endpoint": "/status", "description": "Get current status" }
+  ]
+}
