@@ -1,6 +1,9 @@
 # Orchestrated AI File Pipeline
 
-**Backend:** The repository uses a Python orchestrator. A prior TypeScript backend has been archived in `archive/mcp-server` to avoid duplication.
+## Documentation
+- [System Blueprint](docs/blueprint.md)
+- [Operational Rules](docs/rules.md)
+
 
 ## Prerequisites
 
