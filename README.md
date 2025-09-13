@@ -1,5 +1,7 @@
 # Orchestrated AI File Pipeline
 
+**Backend:** The repository uses a Python orchestrator. A prior TypeScript backend has been archived in `archive/mcp-server` to avoid duplication.
+
 ## Prerequisites
 
 ### Redis (Upstash)
