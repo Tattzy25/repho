@@ -8,6 +8,10 @@ backend/*.sqlite3
 *.env.local
 .vercel
 
+# Local cleanups
+.trash_*/
+local_backups/
+
 
 # Frontend
 frontend/node_modules/
