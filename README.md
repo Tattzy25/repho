@@ -1,5 +1,10 @@
 # Orchestrated AI File Pipeline
 
+## Documentation
+- [System Blueprint](docs/blueprint.md)
+- [Operational Rules](docs/rules.md)
+
+
 ## Prerequisites
 
 ### Redis (Upstash)
@@ -18,7 +23,7 @@
   ```
 
 ### AI Gateway
-- Install your AI Gateway SDK (example placeholder):
+- Install your AI Gateway SDK:
   ```bash
   npm install ai-gateway-sdk
   ```
