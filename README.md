@@ -17,8 +17,13 @@
   DATABASE_URL=<your-neon-connection-string>
   ```
 
+### Audit Log Table
+- The `backend/infra/audit_log.sql` file defines a table for tracking job activity.
+- Columns: `job_id`, `agent`, `phase`, `payload`, and a timestamp.
+- Indexes on `job_id` and `agent` speed up lookup by these fields.
+
 ### AI Gateway
-- Install your AI Gateway SDK (example placeholder):
+- Install your AI Gateway SDK:
   ```bash
   npm install ai-gateway-sdk
   ```
