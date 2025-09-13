@@ -1,12 +1,18 @@
-import React from 'react'
-import ChatPanel from './ChatPanel'
-import ControlPanel from './ControlPanel'
+import React from "react";
+import { Button } from "./components/ui/button";
 
-const App: React.FC = () => (
-  <div className="p-4 space-y-8">
-    <ControlPanel />
-    <ChatPanel />
-  </div>
-)
+const API_BASE = "http://localhost:3001";
 
-export default App
+export default function App() {
+  const send = async (endpoint: string) => {
+    await fetch(`${API_BASE}/${endpoint}`, { method: "POST" });
+  };
+
+  return (
+    <div className="flex gap-4 p-4">
+      <Button onClick={() => send("start")}>Start</Button>
+      <Button onClick={() => send("pause")}>Pause</Button>
+      <Button onClick={() => send("stop")}>Stop</Button>
+    </div>
+  );
+}
