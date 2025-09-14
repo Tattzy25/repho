@@ -4,7 +4,9 @@ import json
 import redis.asyncio as redis
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from typing import Set
+from dotenv import load_dotenv
 
+load_dotenv()
 load_env = os.getenv
 redis_url = os.getenv("UPSTASH_REDIS_URL")
 if redis_url is None:

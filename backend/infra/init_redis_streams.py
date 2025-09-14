@@ -4,9 +4,11 @@ Initialize Redis Streams for the orchestrated pipeline.
 # Install redis module by running 'pip install redis' in your terminal
 import os
 import redis
+from dotenv import load_dotenv
 
 # Use the Redis protocol URL, not the REST URL/token.
 # Example (Upstash): UPSTASH_REDIS_URL=rediss://:password@host:port
+load_dotenv()
 redis_url = os.getenv("UPSTASH_REDIS_URL")
 if redis_url is None:
     raise RuntimeError(

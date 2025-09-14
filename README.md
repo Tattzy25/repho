@@ -4,114 +4,76 @@
 - [System Blueprint](docs/blueprint.md)
 - [Operational Rules](docs/rules.md)
 
+## Overview
+- Backend orchestrator consumes Redis stream events, validates each phase, and on failure both publishes an error to Redis and persists it to Postgres (when `DATABASE_URL` is set).
+- FastAPI server bridges the `phase_error` Redis channel to a WebSocket at `/ws/errors` for live UI toasts.
+- Frontend (Vite + React + shadcn/sonner) shows controls and subscribes to error events.
 
 ## Prerequisites
+- Redis (Upstash): use the Redis protocol URL (`rediss://...`), not the REST URL/token. Local Redis (`redis://localhost:6379`) also works for development.
+- Postgres (optional): set `DATABASE_URL` (e.g., Neon/Cloud/Postgres local) to persist orchestrator failures. Install a driver: `pip install 'psycopg[binary]'` (recommended) or `pip install psycopg2-binary`.
 
-### Redis (Upstash)
-- Ensure you have an Upstash Redis instance.
-- Create environment variables in `.env`:
-  ```dotenv
-  UPSTASH_REDIS_REST_URL=<your-upstash-url>
-  UPSTASH_REDIS_REST_TOKEN=<your-upstash-token>
-  ```
+## Environment
+Create a `.env` at the repository root:
+```dotenv
+# Use the Redis protocol URL (rediss://...), not REST URL/token
+UPSTASH_REDIS_URL=rediss://:<password>@<host>:<port>
 
-### Postgres (Neon)
-- You can use Neon Postgres serverless.
-- Set in `.env`:
-  ```dotenv
-  DATABASE_URL=<your-neon-connection-string>
-  ```
+# Optional: enable Postgres error logging
+DATABASE_URL=postgresql://user:pass@host:port/db
+```
 
-### Audit Log Table
-- The `backend/infra/audit_log.sql` file defines a table for tracking job activity.
-- Columns: `job_id`, `agent`, `phase`, `payload`, and a timestamp.
-- Indexes on `job_id` and `agent` speed up lookup by these fields.
-
-### AI Gateway
-- Install your AI Gateway SDK:
-  ```bash
-  npm install ai-gateway-sdk
-  ```
-- Set your API key or OIDC in `.env`:
-  ```dotenv
-  AI_GATEWAY_API_KEY=<your-api-key>
-  ```
-
-## Installation
-
-### Backend
+## Backend Setup
 ```bash
 cd backend
 python -m venv .venv
-. .venv/Scripts/activate    # Windows PowerShell
+# Windows PowerShell
+. .venv/Scripts/activate
 pip install -r requirements.txt
+# Optional Postgres driver for error logging
+# pip install 'psycopg[binary]'
 ```
 
-### Frontend (Next.js + shadcn UI)
+Initialize Redis streams (creates streams and a consumer group):
+```bash
+cd backend/infra
+python init_redis_streams.py
+```
+
+Run the orchestrator (validates phases; publishes and logs failures):
+```bash
+# from repository root (uses .env at root)
+python backend/orchestrator.py
+```
+
+Run the FastAPI WebSocket server (bridges `phase_error` → `/ws/errors`):
+```bash
+uvicorn backend.server:app --host 0.0.0.0 --port 8000 --reload
+```
+
+Keep the orchestrator and WebSocket server running in separate terminals.
+
+## Frontend Setup
 ```bash
 cd frontend
-npm install               # installs Next.js, React, Tailwind, ESLint
-# install UI & integrations
-npm install @shadcn/ui @upstash/redis pg ai-gateway-sdk socket.io-client
-npm install -D @types/socket.io-client
-npx shadcn@latest add sidebar-16  # or sidebar-11 / sidebar-12
-```
-
-## Dependencies
-
-### Backend (Python)
-Install using the `requirements.txt`:
-```bash
-python -m venv .venv
-. .venv/Scripts/activate  # Windows PowerShell
-pip install -r requirements.txt
-```
-`requirements.txt` contains:
-```
-redis==4.5.1
-pydantic==1.10.9
-psycopg2-binary==2.9.7
-python-dotenv==1.0.0
-fastapi==0.95.0
-uvicorn==0.23.2
-```
-
-### Frontend (Node)
-```bash
 npm install
-npm install @shadcn/ui @upstash/redis pg ai-gateway-sdk socket.io-client
-npm install -D @types/socket.io-client
-```  
-
-## Environment Examples
-### Root `.env.example`
-```dotenv
-UPSTASH_REDIS_REST_URL=
-UPSTASH_REDIS_REST_TOKEN=
-DATABASE_URL=
-AI_GATEWAY_API_KEY=
-```
-### Frontend `.env.local.example`
-```dotenv
-NEXT_PUBLIC_WS_URL=ws://localhost:8000
+npm run dev
 ```
 
-## Running Locally
+- Dev UI: http://localhost:5173
+- The ChatPanel auto-connects to `ws://localhost:8000/ws/errors` and raises toast alerts per error event.
+- The Control Panel shows Start/Pause/Stop buttons (wired to `http://localhost:3001`). If you’re using the optional `backend-mcp` sample server, run it separately (ts-node/tsc not included here).
 
-1. Start Redis Streams setup:
-   ```bash
-   cd backend/infra
-   python init_redis_streams.py
-   ```
-2. Launch Orchestrator API server:
-   ```bash
-   cd backend
-   uvicorn orchestrator:app --reload
-   ```
-3. Run Next.js Frontend:
-   ```bash
-   cd frontend
-   npm run dev
-   ```
+## Build for Production
+```bash
+cd frontend
+npm install
+npm run build
+npm run preview
+```
 
-Open http://localhost:3000 for your control panel with six real-time chat interfaces.
+Ensure the orchestrator and FastAPI server are running as above while previewing the UI.
+
+## Notes
+- Audit schema example: see `backend/infra/audit_log.sql`.
+- Models roster reference: `backend/models_config.py`.
