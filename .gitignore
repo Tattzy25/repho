@@ -16,4 +16,5 @@ local_backups/
 # Frontend
 frontend/node_modules/
 frontend/dist/
-.vercel
+backend-mcp/node_modules/
+backend-mcp/dist/

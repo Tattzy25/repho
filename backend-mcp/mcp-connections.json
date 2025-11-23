@@ -1,0 +1,12 @@
+{
+  "connections": [
+    { "name": "neon", "command": "npx @neondatabase/mcp-server-neon", "status": "disconnected" },
+    { "name": "github", "command": "npx github-mcp-custom", "status": "disconnected" },
+    { "name": "vercel", "command": "npx vercel-mcp", "status": "disconnected" },
+    { "name": "supabase", "command": "npx supabase-mcp", "status": "disconnected" },
+    { "name": "vscode", "command": "npx vscode-mcp-server", "status": "disconnected" },
+    { "name": "memory", "command": "npx local-memory-mcp", "status": "disconnected" },
+    { "name": "file", "command": "npx @skhatri/file-mcp", "status": "disconnected" },
+    { "name": "web-scraper", "command": "npx web-scraper-mcp-puppeteer", "status": "disconnected" }
+  ]
+}
